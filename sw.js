@@ -27,13 +27,17 @@ self.addEventListener('activate', (e) => {
 
 function openDb() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('dwg-edit', 1);
+    // src/lib/storage.ts 의 DB_VERSION·STORES 와 같아야 한다
+    const req = indexedDB.open('dwg-edit', 2);
     req.onupgradeneeded = () => {
-      for (const s of ['files', 'scenes', 'marks']) {
+      for (const s of ['files', 'scenes', 'marks', 'photos']) {
         if (!req.result.objectStoreNames.contains(s)) req.result.createObjectStore(s, { keyPath: 'id' });
       }
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      req.result.onversionchange = () => req.result.close();
+      resolve(req.result);
+    };
     req.onerror = () => reject(req.error);
   });
 }
@@ -48,6 +52,7 @@ async function saveShared(file) {
     tx.oncomplete = resolve;
     tx.onerror = () => reject(tx.error);
   });
+  db.close(); // 열어 둔 채면 화면 쪽의 저장소 업그레이드를 막는다
   return id;
 }
 
