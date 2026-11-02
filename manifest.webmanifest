@@ -36,6 +36,7 @@
           "accept": [
             ".dwg",
             ".dxf",
+            ".dwgv",
             "image/vnd.dwg",
             "application/acad",
             "application/x-dwg",
